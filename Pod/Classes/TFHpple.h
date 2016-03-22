@@ -27,31 +27,32 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-#import <Foundation/Foundation.h>
-
 #import "TFHppleElement.h"
 
-@interface TFHpple : NSObject 
 
-- (id) initWithData:(NSData *)theData encoding:(NSString *)encoding isXML:(BOOL)isDataXML;
-- (id) initWithData:(NSData *)theData isXML:(BOOL)isDataXML;
-- (id) initWithXMLData:(NSData *)theData encoding:(NSString *)encoding;
-- (id) initWithXMLData:(NSData *)theData;
-- (id) initWithHTMLData:(NSData *)theData encoding:(NSString *)encoding;
-- (id) initWithHTMLData:(NSData *)theData;
+@interface TFHpple : NSObject
 
-+ (TFHpple *) hppleWithData:(NSData *)theData encoding:(NSString *)encoding isXML:(BOOL)isDataXML;
-+ (TFHpple *) hppleWithData:(NSData *)theData isXML:(BOOL)isDataXML;
-+ (TFHpple *) hppleWithXMLData:(NSData *)theData encoding:(NSString *)encoding;
-+ (TFHpple *) hppleWithXMLData:(NSData *)theData;
-+ (TFHpple *) hppleWithHTMLData:(NSData *)theData encoding:(NSString *)encoding;
-+ (TFHpple *) hppleWithHTMLData:(NSData *)theData;
+@property (nonatomic, readonly) NSData *data;
+@property (nonatomic, readonly) NSString *encoding;
+@property (nonatomic, readonly, getter=isXML) BOOL xml;
 
-- (NSArray *) searchWithXPathQuery:(NSString *)xPathOrCSS;
-- (TFHppleElement *) peekAtSearchWithXPathQuery:(NSString *)xPathOrCSS;
+@property (nonatomic, readonly) NSString *doctype;
 
-@property (nonatomic, readonly) NSData * data;
-@property (nonatomic, readonly) NSString * encoding;
+- (instancetype)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML;
+- (instancetype)initWithData:(NSData *)data isXML:(BOOL)isXML;
+- (instancetype)initWithXMLData:(NSData *)data encoding:(NSString *)encoding;
+- (instancetype)initWithXMLData:(NSData *)data;
+- (instancetype)initWithHTMLData:(NSData *)data encoding:(NSString *)encoding;
+- (instancetype)initWithHTMLData:(NSData *)data;
+
++ (instancetype)hppleWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML;
++ (instancetype)hppleWithData:(NSData *)data isXML:(BOOL)isXML;
++ (instancetype)hppleWithXMLData:(NSData *)data encoding:(NSString *)encoding;
++ (instancetype)hppleWithXMLData:(NSData *)data;
++ (instancetype)hppleWithHTMLData:(NSData *)data encoding:(NSString *)encoding;
++ (instancetype)hppleWithHTMLData:(NSData *)data;
+
+- (NSArray *)searchWithXPathQuery:(NSString *)xPathOrCSS;
+- (TFHppleElement *)peekAtSearchWithXPathQuery:(NSString *)xPathOrCSS;
 
 @end

@@ -28,114 +28,153 @@
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #import "TFHpple.h"
-#import "XPathQuery.h"
+#import <libxml/tree.h>
+#import <libxml/parser.h>
+#import <libxml/HTMLtree.h>
+#import <libxml/HTMLparser.h>
+#import <libxml/xpath.h>
+#import <libxml/xpathInternals.h>
 
-@interface TFHpple ()
-{
-    NSData * data;
-    NSString * encoding;
-    BOOL isXML;
+
+@implementation TFHpple {
+@private
+    xmlDocPtr _document;
+    xmlXPathContextPtr _context;
 }
 
-@end
+- (id)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML {
+    self = [super init];
+    if (self) {
+        _data = data;
+        _encoding = encoding;
+        _xml = isXML;
 
+        if (isXML) {
+            _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, XML_PARSE_RECOVER);
+        } else {
+            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, HTML_PARSE_NODEFDTD | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+        }
+        if (!_document) {
+            NSLog(@"Unable to parse."); // FIXME!
+            return nil;
+        }
 
-@implementation TFHpple
-
-@synthesize data;
-@synthesize encoding;
-
-
-- (id) initWithData:(NSData *)theData encoding:(NSString *)theEncoding isXML:(BOOL)isDataXML
-{
-  if (!(self = [super init])) {
-    return nil;
-  }
-
-  data = theData;
-  encoding = theEncoding;
-  isXML = isDataXML;
-
-  return self;
+        /* Create xpath evaluation context */
+        _context = xmlXPathNewContext(_document);
+        if(_context == NULL) {
+            NSLog(@"Unable to create XPath context."); // FIXME!
+            return nil;
+        }
+    }
+    return self;
 }
 
-- (id) initWithData:(NSData *)theData isXML:(BOOL)isDataXML
-{
-    return [self initWithData:theData encoding:nil isXML:isDataXML];
+- (void)dealloc {
+    xmlXPathFreeContext(_context);
+    xmlFreeDoc(_document);
 }
 
-- (id) initWithXMLData:(NSData *)theData encoding:(NSString *)theEncoding
-{
-  return [self initWithData:theData encoding:theEncoding isXML:YES];
+- (instancetype)initWithData:(NSData *)data isXML:(BOOL)isXML {
+    return [self initWithData:data encoding:nil isXML:isXML];
 }
 
-- (id) initWithXMLData:(NSData *)theData
-{
-  return [self initWithData:theData encoding:nil isXML:YES];
+- (instancetype)initWithXMLData:(NSData *)data encoding:(NSString *)encoding {
+    return [self initWithData:data encoding:encoding isXML:YES];
 }
 
-- (id) initWithHTMLData:(NSData *)theData encoding:(NSString *)theEncoding
-{
-    return [self initWithData:theData encoding:theEncoding isXML:NO];
+- (instancetype)initWithXMLData:(NSData *)data {
+    return [self initWithData:data encoding:nil isXML:YES];
 }
 
-- (id) initWithHTMLData:(NSData *)theData
-{
-  return [self initWithData:theData encoding:nil isXML:NO];
+- (instancetype)initWithHTMLData:(NSData *)data encoding:(NSString *)encoding {
+    return [self initWithData:data encoding:encoding isXML:NO];
 }
 
-+ (TFHpple *) hppleWithData:(NSData *)theData encoding:(NSString *)theEncoding isXML:(BOOL)isDataXML {
-  return [[[self class] alloc] initWithData:theData encoding:theEncoding isXML:isDataXML];
+- (instancetype)initWithHTMLData:(NSData *)data {
+    return [self initWithData:data encoding:nil isXML:NO];
 }
 
-+ (TFHpple *) hppleWithData:(NSData *)theData isXML:(BOOL)isDataXML {
-  return [[self class] hppleWithData:theData encoding:nil isXML:isDataXML];
++ (instancetype)hppleWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML {
+    return [[self alloc] initWithData:data encoding:encoding isXML:isXML];
 }
 
-+ (TFHpple *) hppleWithHTMLData:(NSData *)theData encoding:(NSString *)theEncoding {
-  return [[self class] hppleWithData:theData encoding:theEncoding isXML:NO];
++ (instancetype)hppleWithData:(NSData *)data isXML:(BOOL)isXML {
+    return [self hppleWithData:data encoding:nil isXML:isXML];
 }
 
-+ (TFHpple *) hppleWithHTMLData:(NSData *)theData {
-  return [[self class] hppleWithData:theData encoding:nil isXML:NO];
++ (instancetype)hppleWithHTMLData:(NSData *)data encoding:(NSString *)encoding {
+    return [self hppleWithData:data encoding:encoding isXML:NO];
 }
 
-+ (TFHpple *) hppleWithXMLData:(NSData *)theData encoding:(NSString *)theEncoding {
-  return [[self class] hppleWithData:theData encoding:theEncoding isXML:YES];
++ (instancetype)hppleWithHTMLData:(NSData *)data {
+    return [self hppleWithData:data encoding:nil isXML:NO];
 }
 
-+ (TFHpple *) hppleWithXMLData:(NSData *)theData {
-  return [[self class] hppleWithData:theData encoding:nil isXML:YES];
++ (instancetype)hppleWithXMLData:(NSData *)data encoding:(NSString *)encoding {
+    return [self hppleWithData:data encoding:encoding isXML:YES];
+}
+
++ (instancetype)hppleWithXMLData:(NSData *)data {
+    return [[self class] hppleWithData:data encoding:nil isXML:YES];
 }
 
 #pragma mark -
 
-// Returns all elements at xPath.
-- (NSArray *) searchWithXPathQuery:(NSString *)xPathOrCSS
-{
-  NSArray * detailNodes = nil;
-  if (isXML) {
-    detailNodes = PerformXMLXPathQueryWithEncoding(data, xPathOrCSS, encoding);
-  } else {
-    detailNodes = PerformHTMLXPathQueryWithEncoding(data, xPathOrCSS, encoding);
-  }
+- (NSString *)doctype {
+    NSString *doctype = nil;
+    if (_document->intSubset) {
+        xmlBufferPtr buffer = xmlBufferCreate();
+        xmlDtd *dtd = _document->intSubset;
+        xmlNodeDump(buffer, dtd->doc, (xmlNodePtr)dtd, 0, 0);
+        doctype = [NSString stringWithUTF8String:(const char *)buffer->content];
+        xmlBufferFree(buffer);
+    }
+    return doctype;
+}
 
-  NSMutableArray * hppleElements = [NSMutableArray array];
-  for (id node in detailNodes) {
-    [hppleElements addObject:[TFHppleElement hppleElementWithNode:node isXML:isXML withEncoding:encoding]];
-  }
-  return hppleElements;
+// Returns all elements at xPath.
+- (NSArray *)searchWithXPathQuery:(NSString *)xPathOrCSS {
+    return [self performQuery:xPathOrCSS fromNode:xmlDocGetRootElement(_document)];
 }
 
 // Returns first element at xPath
-- (TFHppleElement *) peekAtSearchWithXPathQuery:(NSString *)xPathOrCSS
-{
-  NSArray * elements = [self searchWithXPathQuery:xPathOrCSS];
-  if ([elements count] >= 1) {
-    return [elements objectAtIndex:0];
-  }
+- (TFHppleElement *)peekAtSearchWithXPathQuery:(NSString *)xPathOrCSS {
+    return [self searchWithXPathQuery:xPathOrCSS].firstObject;
+}
 
-  return nil;
+#pragma mark - Private Methods
+
+- (NSArray *)performQuery:(NSString *)query fromNode:(xmlNodePtr)node {
+    NSParameterAssert(query);
+    if (!query) {
+        return nil; // FIXME! (Should raise)
+    }
+
+    /* Evaluate xpath expression */
+    //xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((xmlChar *)query.UTF8String, _context);
+    xmlXPathObjectPtr xpathObj = xmlXPathNodeEval(node, (xmlChar *)query.UTF8String, _context);
+    if(xpathObj == NULL) {
+        NSLog(@"Unable to evaluate XPath.");
+        return nil;
+    }
+
+    xmlNodeSetPtr nodes = xpathObj->nodesetval;
+    if (!nodes) {
+        NSLog(@"Nodes was nil.");
+        xmlXPathFreeObject(xpathObj);
+        return nil;
+    }
+
+    NSMutableArray *resultNodes = [NSMutableArray array];
+    for (NSInteger index = 0; index < nodes->nodeNr; index++) {
+        [resultNodes addObject:[[TFHppleElement alloc] initWithNode:nodes->nodeTab[index] document:self]];
+
+    }
+    
+    /* Cleanup */
+    xmlXPathFreeObject(xpathObj);
+
+    return resultNodes;
 }
 
 @end
