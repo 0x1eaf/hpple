@@ -52,7 +52,7 @@
         if (isXML) {
             _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, XML_PARSE_RECOVER);
         } else {
-            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, HTML_PARSE_NODEFDTD | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, HTML_PARSE_RECOVER | HTML_PARSE_NODEFDTD | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
         }
         if (!_document) {
             NSLog(@"Unable to parse."); // FIXME!
@@ -130,6 +130,15 @@
         xmlBufferFree(buffer);
     }
     return doctype;
+}
+
+- (BOOL)isXHTML {
+    if (!self.xml) {
+        TFHppleElement *root = [[TFHppleElement alloc] initWithNode:xmlDocGetRootElement(_document) document:self];
+        return [root.tagName.lowercaseString isEqualToString:@"html"] &&
+               [[[root objectForKey:@"xmlns"] lowercaseString] isEqualToString:@"http://www.w3.org/1999/xhtml"];
+    }
+    return NO;
 }
 
 // Returns all elements at xPath.
