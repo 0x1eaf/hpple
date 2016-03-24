@@ -5,6 +5,8 @@
 //  Created by Geoffrey Grosenbach on 1/31/09.
 //
 //  Copyright (c) 2009 Topfunky Corporation, http://topfunky.com
+//  Copyright (c) 2016 Hpple authors and contributors, see AUTHORS file
+//  for more details.
 //
 //  MIT LICENSE
 //
@@ -179,7 +181,7 @@
         [resultNodes addObject:[[TFHppleElement alloc] initWithNode:nodes->nodeTab[index] document:self]];
 
     }
-    
+
     /* Cleanup */
     xmlXPathFreeObject(xpathObj);
 
