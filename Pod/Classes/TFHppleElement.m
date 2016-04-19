@@ -129,7 +129,7 @@
 }
 
 - (id)description {
-    return [super description]; // FIXME!
+    return [NSString stringWithFormat:@"%@ (\n%@\n)", [super description], [self raw]];
 }
 
 - (BOOL)hasChildren {
