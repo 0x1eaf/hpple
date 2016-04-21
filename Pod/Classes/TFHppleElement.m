@@ -85,6 +85,16 @@
     return _node->name ? [NSString stringWithUTF8String:(const char *)_node->name] : nil;
 }
 
+- (NSString *)prefix {
+    const xmlChar *prefix = _node->nsDef ? _node->nsDef->prefix : NULL;
+    return prefix ? [NSString stringWithUTF8String:(const char *)prefix] : nil;
+}
+
+- (NSString *)qName {
+    NSString *prefix = self.prefix;
+    return prefix ? [NSString stringWithFormat:@"%@:%@", prefix, self.tagName] : self.tagName;
+}
+
 - (NSArray *)children {
     NSMutableArray *children = [NSMutableArray array];
     xmlNodePtr childNode = _node->children;

@@ -45,6 +45,10 @@
 // Returns the name of the current tag, such as "h3".
 @property (nonatomic, copy, readonly) NSString *tagName;
 
+@property (nonatomic, copy, readonly) NSString *prefix;
+
+@property (nonatomic, copy, readonly) NSString *qName;
+
 // Returns tag attributes with name as key and content as value.
 //   href  = 'http://peepcode.com'
 //   class = 'highlight'

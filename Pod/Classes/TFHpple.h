@@ -41,6 +41,7 @@
 @property (nonatomic, readonly) NSString *doctype;
 @property (nonatomic, readonly, getter=isXHTML) BOOL xhtml;
 
+- (instancetype)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML options:(NSInteger)options;
 - (instancetype)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML;
 - (instancetype)initWithData:(NSData *)data isXML:(BOOL)isXML;
 - (instancetype)initWithXMLData:(NSData *)data encoding:(NSString *)encoding;

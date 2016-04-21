@@ -44,7 +44,7 @@
     xmlXPathContextPtr _context;
 }
 
-- (id)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML {
+- (id)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML options:(NSInteger)options {
     self = [super init];
     if (self) {
         _data = data;
@@ -52,9 +52,9 @@
         _xml = isXML;
 
         if (isXML) {
-            _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, XML_PARSE_RECOVER);
+            _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, options);
         } else {
-            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, HTML_PARSE_RECOVER | HTML_PARSE_NODEFDTD | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, options);
         }
         if (!_document) {
             NSLog(@"Unable to parse."); // FIXME!
@@ -74,6 +74,11 @@
 - (void)dealloc {
     xmlXPathFreeContext(_context);
     xmlFreeDoc(_document);
+}
+
+- (id)initWithData:(NSData *)data encoding:(NSString *)encoding isXML:(BOOL)isXML {
+    NSInteger options = isXML ? XML_PARSE_RECOVER : HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR;
+    return [self initWithData:data encoding:encoding isXML:isXML options:options];
 }
 
 - (instancetype)initWithData:(NSData *)data isXML:(BOOL)isXML {
