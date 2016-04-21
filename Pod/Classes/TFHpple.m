@@ -52,9 +52,9 @@
         _xml = isXML;
 
         if (isXML) {
-            _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, options);
+            _document = xmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, (int)options);
         } else {
-            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, options);
+            _document = htmlReadMemory(data.bytes, (int)data.length, "", encoding.UTF8String, (int)options);
         }
         if (!_document) {
             NSLog(@"Unable to parse."); // FIXME!
