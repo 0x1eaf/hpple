@@ -79,7 +79,6 @@
 
 - (NSString *)content {
     if (!_content) {
-        NSString *content = nil;
         xmlChar *nodeContent = xmlNodeGetContent(_node);
         if (nodeContent) {
             _content = [NSString stringWithUTF8String:(const char *)nodeContent];
