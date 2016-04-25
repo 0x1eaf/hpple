@@ -42,6 +42,7 @@
 
 
 @interface TFHppleElement () {
+@private
     xmlNodePtr _node;
 }
 
@@ -51,6 +52,11 @@
 
 
 @implementation TFHppleElement
+
+@synthesize content = _content;
+@synthesize tagName = _tagName;
+@synthesize prefix = _prefix;
+@synthesize qName = _qName;
 
 - (instancetype)initWithNode:(void *)node document:(TFHpple *)document {
     self = [super init];
@@ -72,27 +78,37 @@
 }
 
 - (NSString *)content {
-    NSString *content = nil;
-    xmlChar *nodeContent = xmlNodeGetContent(_node);
-    if (nodeContent) {
-        content = [NSString stringWithUTF8String:(const char *)nodeContent];
-        xmlFree(nodeContent);
+    if (!_content) {
+        NSString *content = nil;
+        xmlChar *nodeContent = xmlNodeGetContent(_node);
+        if (nodeContent) {
+            _content = [NSString stringWithUTF8String:(const char *)nodeContent];
+            xmlFree(nodeContent);
+        }
     }
-    return content;
+    return _content;
 }
 
 - (NSString *)tagName {
-    return _node->name ? [NSString stringWithUTF8String:(const char *)_node->name] : nil;
+    if (!_tagName) {
+        _tagName = _node->name ? [NSString stringWithUTF8String:(const char *)_node->name] : nil;;
+    }
+    return _tagName;
 }
 
 - (NSString *)prefix {
-    const xmlChar *prefix = _node->nsDef ? _node->nsDef->prefix : NULL;
-    return prefix ? [NSString stringWithUTF8String:(const char *)prefix] : nil;
+    if (!_prefix) {
+        const xmlChar *prefix = _node->nsDef ? _node->nsDef->prefix : NULL;
+        _prefix = prefix ? [NSString stringWithUTF8String:(const char *)prefix] : nil;
+    }
+    return _prefix;
 }
 
 - (NSString *)qName {
-    NSString *prefix = self.prefix;
-    return prefix ? [NSString stringWithFormat:@"%@:%@", prefix, self.tagName] : self.tagName;
+    if (!_qName) {
+        _qName = self.prefix ? [NSString stringWithFormat:@"%@:%@", self.prefix, self.tagName] : self.tagName;
+    }
+    return _qName;
 }
 
 - (NSArray *)children {
