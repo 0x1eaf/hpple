@@ -61,6 +61,19 @@
             return nil;
         }
 
+        /*
+         * Check from libxml2/doc/tutorial/includeaddattribute.c
+         * STR:
+         *   NSData *data = [@"   " dataUsingEncoding:NSUTF8StringEncoding];
+         *   NSInteger options = HTML_PARSE_IGNORE_ENC | HTML_PARSE_NONET | HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR;
+         *   TFHpple *document = [[TFHpple alloc] initWithData:data encoding:nil isXML:NO options:options];
+         *   document.isXHTML; // will cause segfault (without this check)
+         */
+        if (xmlDocGetRootElement(_document) == NULL) {
+            NSLog(@"Empty document."); // FIXME!
+            return nil;
+        }
+
         /* Create xpath evaluation context */
         _context = xmlXPathNewContext(_document);
         if(_context == NULL) {
